@@ -1,7 +1,10 @@
 import * as path from 'path';
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
-import type { ReportDescriptor } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
+import type {
+  ReportDescriptor,
+  RuleFix,
+} from '@typescript-eslint/experimental-utils/dist/ts-eslint';
 
 type Regex = string;
 type ImportPath = string;
@@ -59,7 +62,13 @@ export default util.createRule<Options, MessageIds>({
       },
     );
 
+    const imported = new Set<string>();
+
     return {
+      ImportSpecifier(node: TSESTree.ImportSpecifier) {
+        imported.add(node.imported.name);
+      },
+
       FunctionDeclaration(node: TSESTree.FunctionDeclaration) {
         for (const param of node.params) {
           if (param.type !== 'Identifier') continue;
@@ -77,10 +86,16 @@ export default util.createRule<Options, MessageIds>({
           if (fixObj) {
             const [, [importFrom, type]] = fixObj;
             const importText = `import type { ${type} } from '${importFrom}';\n`;
-            fix = (fixer) => [
+            fix = (fixer) => {
+              const fixes: RuleFix[] = [];
+              if (!imported.has(type)) {
+                imported.add(type);
+                fixes.push(fixer.insertTextBefore(topLevel(node), importText));
+              }
               fixer.insertTextBefore(topLevel(node), importText),
-              fixer.insertTextAfter(param, `: ${type}`),
-            ];
+                fixes.push(fixer.insertTextAfter(param, `: ${type}`));
+              return fixes;
+            };
           }
 
           context.report({

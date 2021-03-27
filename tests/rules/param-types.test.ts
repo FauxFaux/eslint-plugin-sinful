@@ -36,5 +36,42 @@ function test(foo: Foo) {}`,
         },
       ],
     },
+    {
+      options: [{required: [".*"], fixes: {"foo": ["./lib/types", "Foo"]}}],
+      code: `import type { Foo } from '../lib/types';
+function test(foo) {}`,
+      output: `import type { Foo } from '../lib/types';
+function test(foo: Foo) {}`,
+      errors: [
+        {
+          line: 2,
+          messageId: 'mustBeTyped',
+        },
+      ],
+    },
+    {
+      options: [{required: [".*"], fixes: {"foo": ["./lib/types", "Foo"]}}],
+      code: `function test(foo) {}
+function two(foo) {}
+function three(foo) {}
+`,
+      output: `import type { Foo } from '../lib/types';
+function test(foo: Foo) {}
+function two(foo: Foo) {}
+function three(foo: Foo) {}
+`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeTyped',
+        },        {
+          line: 2,
+          messageId: 'mustBeTyped',
+        },        {
+          line: 3,
+          messageId: 'mustBeTyped',
+        },
+      ],
+    },
   ]
 });
