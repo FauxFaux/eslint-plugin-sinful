@@ -53,6 +53,17 @@ ruleTester.run('unbounded-concurrency', rule, {
       ],
     },
     {
+      code: `await Promise.all(unknownVar.map(async (v) => v));`,
+      output: `import * as pMap from 'p-map';
+await pMap(unknownVar, async (v) => v, { concurrency: 6 });`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'wrongPromiseAll',
+        },
+      ],
+    },
+    {
       code: `
         import * as pMap from 'p-map';
         await pMap(unknownVar, async (v) => v, {});`,

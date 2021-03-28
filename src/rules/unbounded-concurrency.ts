@@ -1,6 +1,10 @@
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
-import type { ReportDescriptor } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
+import type {
+  ReportDescriptor,
+  RuleFix,
+} from '@typescript-eslint/experimental-utils/dist/ts-eslint';
+import { topLevel } from '../util';
 
 type Options = [{}];
 type MessageIds = 'wrongPromiseAll' | 'unclearPromiseAll' | 'unboundedPMap';
@@ -79,15 +83,29 @@ export default util.createRule<Options, MessageIds>({
             if (arg.callee.property.name !== 'map') return;
             if (arg.arguments.length !== 1) return;
 
-            // TODO: add import
-            const func = imported.values().next().value ?? 'pMap';
+            let func = imported.values().next().value;
             const obj = sourceCode.getText(arg.callee.object);
             const mapper = sourceCode.getText(arg.arguments[0]);
-            const fix: ReportDescriptor<MessageIds>['fix'] = (fixer) =>
-              fixer.replaceText(
-                node,
-                `${func}(${obj}, ${mapper}, { concurrency: 6 })`,
+            const fix: ReportDescriptor<MessageIds>['fix'] = (fixer) => {
+              const fixes: RuleFix[] = [];
+              if (!func) {
+                func = 'pMap';
+                imported.add(func);
+                fixes.push(
+                  fixer.insertTextBefore(
+                    topLevel(node),
+                    `import * as ${func} from 'p-map';\n`,
+                  ),
+                );
+              }
+              fixes.push(
+                fixer.replaceText(
+                  node,
+                  `${func}(${obj}, ${mapper}, { concurrency: 6 })`,
+                ),
               );
+              return fixes;
+            };
 
             context.report({
               node,

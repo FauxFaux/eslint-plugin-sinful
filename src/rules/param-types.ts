@@ -5,6 +5,7 @@ import type {
   ReportDescriptor,
   RuleFix,
 } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
+import { topLevel } from '../util';
 
 type Regex = string;
 type ImportPath = string;
@@ -92,8 +93,7 @@ export default util.createRule<Options, MessageIds>({
                 imported.add(type);
                 fixes.push(fixer.insertTextBefore(topLevel(node), importText));
               }
-              fixer.insertTextBefore(topLevel(node), importText),
-                fixes.push(fixer.insertTextAfter(param, `: ${type}`));
+              fixes.push(fixer.insertTextAfter(param, `: ${type}`));
               return fixes;
             };
           }
@@ -108,9 +108,3 @@ export default util.createRule<Options, MessageIds>({
     };
   },
 });
-
-function topLevel(node: TSESTree.Node): TSESTree.Node {
-  let p = node;
-  while (p.parent) p = p.parent;
-  return p;
-}
