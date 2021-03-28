@@ -21,9 +21,12 @@ export default util.createRule<Options, MessageIds>({
     fixable: 'code',
     type: 'problem',
     messages: {
-      wrongPromiseAll: '',
-      unclearPromiseAll: '',
-      unboundedPMap: '',
+      wrongPromiseAll:
+        '`Promise.all(foo.map(bar))` is discouraged due to unbounded concurrency',
+      unclearPromiseAll:
+        '`Promise.all(someExpression)` is discouraged,' +
+        ' consider `pMap` or `Promise.all([literal, things])`',
+      unboundedPMap: '`pMap` requires a `{ concurrency }` argument',
     },
     schema: [
       {
