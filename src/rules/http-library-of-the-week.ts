@@ -1,10 +1,6 @@
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
-import type {
-  ReportDescriptor,
-  RuleFix,
-} from '@typescript-eslint/experimental-utils/dist/ts-eslint';
-import { topLevel } from '../util';
+import type { ReportDescriptor, } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
 
 type Options = [{}];
 type MessageIds = 'requestPromiseNative';
@@ -29,8 +25,6 @@ export default util.createRule<Options, MessageIds>({
 
   create(context, []) {
     const imported = new Set<string>();
-
-    const sourceCode = context.getSourceCode();
 
     return {
       ImportDeclaration(node: TSESTree.ImportDeclaration) {
@@ -60,7 +54,7 @@ export default util.createRule<Options, MessageIds>({
         const opts = node.arguments[0];
         if (opts.type !== 'ObjectExpression') return;
 
-        const props: Record<string, TSESTree.PropertyNameNonComputedName> = {};
+        const props: Record<string, any> = {};
         for (const prop of opts.properties) {
           // vs. e.g. a member definition; { foo() {} }.
           if (prop.type !== 'Property') return;
