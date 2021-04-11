@@ -1,6 +1,6 @@
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
-import type { ReportDescriptor, } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
+import type { ReportDescriptor } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
 
 type Options = [{}];
 type MessageIds = 'requestPromiseNative';

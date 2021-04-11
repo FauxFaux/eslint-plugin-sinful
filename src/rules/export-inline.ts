@@ -60,7 +60,7 @@ export default util.createRule<Options, MessageIds>({
               if (isComma(follower)) {
                 fixes.unshift(fixer.remove(follower));
               }
-                return fixes;
+              return fixes;
             },
           });
         }
@@ -105,7 +105,9 @@ function isIdent(node: TSESTree.Node): node is TSESTree.Identifier {
   return node.type === 'Identifier';
 }
 
-function isPunctuator(token: TSESTree.Token): token is TSESTree.PunctuatorToken {
+function isPunctuator(
+  token: TSESTree.Token,
+): token is TSESTree.PunctuatorToken {
   return token.type === 'Punctuator';
 }
 
