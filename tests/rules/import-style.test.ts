@@ -1,5 +1,6 @@
 import { join } from 'path';
 import rule from '../../src/rules/import-style';
+import type { Options } from '../../src/rules/import-style';
 import { RuleTester } from '@typescript-eslint/experimental-utils/dist/eslint-utils';
 
 const ruleTester = new RuleTester({
@@ -11,8 +12,23 @@ const ruleTester = new RuleTester({
   parser: '@typescript-eslint/parser',
 });
 
+const manyTransforms: Options = [{
+  wildNsToRequire: [ { path: './bar' }, { path: 'baz' } , { local: 'foo', path: './bar' }, { local: 'foo', path: 'baz' } ],
+  requireToNamed: [ { path: './bar' }, { path: 'baz' } , { local: 'foo', path: './bar' }, { local: 'foo', path: 'baz' } ],
+}];
+
 ruleTester.run('import-style', rule, {
   valid: [
+    { code: `import foo = require('foo');`, options: manyTransforms },
+    { code: `import foo from 'foo';`, options: manyTransforms },
+    { code: `import * as foo from 'foo';`, options: manyTransforms },
+    { code: `import { foo } from 'foo';`, options: manyTransforms },
+    { code: `import { foo as food } from 'foo';`, options: manyTransforms },
+    { code: `import foo = require('./foo');`, options: manyTransforms },
+    { code: `import * as foo from './foo';`, options: manyTransforms },
+    { code: `import foo from './foo';`, options: manyTransforms },
+    { code: `import { foo } from './foo';`, options: manyTransforms },
+    { code: `import { foo as food } from './foo';`, options: manyTransforms },
   ],
   invalid: [
     {

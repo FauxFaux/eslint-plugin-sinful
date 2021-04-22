@@ -1,12 +1,13 @@
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
+import path from 'path';
 
 interface MatchRequire {
   local?: string;
   path: string;
 }
 
-type Options = [
+export type Options = [
   {
     requireToNamed?: MatchRequire[];
     wildNsToRequire?: MatchRequire[];
@@ -33,12 +34,16 @@ export default util.createRule<Options, MessageIds>({
   defaultOptions: [{ requireToNamed: [] }],
 
   create(context, [options]) {
+    const dir = path.resolve(path.dirname(context.getFilename()));
+
     return {
       ImportDeclaration(node: TSESTree.ImportDeclaration) {
         if (!options.wildNsToRequire) return;
         if (1 !== node.specifiers.length) return;
         const ns = node.specifiers[0];
         if ('ImportNamespaceSpecifier' !== ns.type) return;
+        const target = importTarget(dir, node.source.value);
+
         if (!ns.local) return;
         context.report({
           node,
