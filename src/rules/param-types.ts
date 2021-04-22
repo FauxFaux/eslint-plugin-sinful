@@ -58,7 +58,9 @@ export default util.createRule<Options, MessageIds>({
 
     const fixes = Object.entries(options.fixes ?? {}).map(
       ([paramName, [wantedImport, type]]) => {
-        const resolvedImport = path.relative(dir, path.resolve(wantedImport));
+        const resolvedImport = wantedImport.startsWith('.')
+          ? path.relative(dir, path.resolve(wantedImport))
+          : wantedImport;
         return [regexp(paramName), [resolvedImport, type]] as const;
       },
     );

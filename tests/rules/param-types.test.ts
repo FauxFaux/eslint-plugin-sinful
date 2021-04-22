@@ -73,5 +73,17 @@ function three(foo: Foo) {}
         },
       ],
     },
+    {
+      options: [{required: [".*"], fixes: {"foo": ["lib-foo", "Foo"]}}],
+      code: `function test(foo) {}`,
+      output: `import type { Foo } from 'lib-foo';
+function test(foo: Foo) {}`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeTyped',
+        },
+      ],
+    },
   ]
 });

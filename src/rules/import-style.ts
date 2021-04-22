@@ -1,6 +1,7 @@
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
 import path from 'path';
+import { importTarget } from '../util/node-imports';
 
 interface MatchRequire {
   local?: string;
@@ -42,7 +43,10 @@ export default util.createRule<Options, MessageIds>({
         if (1 !== node.specifiers.length) return;
         const ns = node.specifiers[0];
         if ('ImportNamespaceSpecifier' !== ns.type) return;
+        if (typeof node.source.value !== 'string') return;
         const target = importTarget(dir, node.source.value);
+        // TODO: match target
+        console.log(target);
 
         if (!ns.local) return;
         context.report({
