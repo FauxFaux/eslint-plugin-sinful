@@ -1,5 +1,6 @@
 import { TSESTree } from '@typescript-eslint/experimental-utils';
 import * as util from '../util/from-eslint-typescript';
+import { RuleContext } from '@typescript-eslint/experimental-utils/dist/ts-eslint';
 
 type Options = [{}];
 type MessageIds = 'mustBeInline' | 'unnecessaryEmptyExport';
@@ -47,22 +48,20 @@ export default util.createRule<Options, MessageIds>({
           if (!func.id) continue;
           const spec = exports[func.id.name];
           if (!spec) continue;
-          context.report({
-            node: spec,
-            messageId: 'mustBeInline',
-            fix: (fixer) => {
-              const fixes = [
-                fixer.remove(spec),
-                fixer.insertTextBefore(func, 'export '),
-              ];
+          report(context, func, spec);
+        }
 
-              const follower = context.getSourceCode().getTokenAfter(spec);
-              if (isComma(follower)) {
-                fixes.unshift(fixer.remove(follower));
-              }
-              return fixes;
-            },
-          });
+        const vars = node.body.filter(isVarDecl);
+        for (const stat of vars) {
+          // export let is poorly defined
+          if (stat.kind !== 'const') continue;
+          if (stat.declarations.length !== 1) continue;
+          const decl = stat.declarations[0];
+          // not sure what syntax this even would be
+          if (decl.id.type !== 'Identifier') continue;
+          const spec = exports[decl.id.name];
+          if (!spec) continue;
+          report(context, stat, spec);
         }
 
         const anyRegulars = node.body.some(
@@ -89,6 +88,25 @@ export default util.createRule<Options, MessageIds>({
   },
 });
 
+function report(context: RuleContext<MessageIds, Options>, nodeOrToken: TSESTree.Node, spec: TSESTree.ExportSpecifier): void {
+  context.report({
+    node: spec,
+    messageId: 'mustBeInline',
+    fix: (fixer) => {
+      const fixes = [
+        fixer.remove(spec),
+        fixer.insertTextBefore(nodeOrToken, 'export '),
+      ];
+
+      const follower = context.getSourceCode().getTokenAfter(spec);
+      if (isComma(follower)) {
+        fixes.unshift(fixer.remove(follower));
+      }
+      return fixes;
+    },
+  });
+}
+
 function isExportNamedDecl(
   node: TSESTree.Statement,
 ): node is TSESTree.ExportNamedDeclaration {
@@ -99,6 +117,12 @@ function isFuncDecl(
   node: TSESTree.Statement,
 ): node is TSESTree.FunctionDeclaration {
   return node.type === 'FunctionDeclaration';
+}
+
+function isVarDecl(
+  node: TSESTree.Statement,
+): node is TSESTree.VariableDeclaration {
+  return node.type === 'VariableDeclaration';
 }
 
 function isIdent(node: TSESTree.Node): node is TSESTree.Identifier {

@@ -15,10 +15,14 @@ ruleTester.run('export-inline', rule, {
   valid: [
     `function test() {}`,
     `export function test() {}`,
+    `export const a = 5;`,
+    `export const a = () => {};`,
+    `export const a = async () => {};`,
+    `export {}; const a = 5;`,
+    `export {}; const a = () => {};`,
+    `export {}; const a = async () => {};`,
     `export {}; function test() {}`,
-
-    // not yet handled
-    `export { a }; const a = 5; function test() {}`,
+    `export {}; const a = 5;`,
   ],
   invalid: [
     {
@@ -26,6 +30,16 @@ ruleTester.run('export-inline', rule, {
       // unclear if this is a test framework bug or a real rule bug (due to Program abuse?)
       code: `export { test }; function test(foo) {}`,
       output: `export {  }; export function test(foo) {}`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
+      code: `export { a }; const a = 5;`,
+      output: `export {  }; export const a = 5;`,
       errors: [
         {
           line: 1,
@@ -44,8 +58,33 @@ ruleTester.run('export-inline', rule, {
       ],
     },
     {
+      code: `export { test, a }; let a = 5; function test(foo) {}`,
+      output: `export {  a }; let a = 5; export function test(foo) {}`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
+      // again, this doesn't seem to fix both, despite reporting both fixes?
       code: `export { test, a }; const a = 5; function test(foo) {}`,
       output: `export {  a }; const a = 5; export function test(foo) {}`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
+      code: `export { a }; const a = 5; export function test(foo) {}`,
+      output: `export {  }; export const a = 5; export function test(foo) {}`,
       errors: [
         {
           line: 1,
