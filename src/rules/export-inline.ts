@@ -64,6 +64,13 @@ export default util.createRule<Options, MessageIds>({
           report(context, stat, spec);
         }
 
+        const interfaces = node.body.filter(isTypeDecl);
+        for (const stat of interfaces) {
+          const spec = exports[stat.id.name];
+          if (!spec) continue;
+          report(context, stat, spec);
+        }
+
         const anyRegulars = node.body.some(
           (node) =>
             (isExportNamedDecl(node) && node.declaration) ||
@@ -88,7 +95,11 @@ export default util.createRule<Options, MessageIds>({
   },
 });
 
-function report(context: RuleContext<MessageIds, Options>, nodeOrToken: TSESTree.Node, spec: TSESTree.ExportSpecifier): void {
+function report(
+  context: RuleContext<MessageIds, Options>,
+  nodeOrToken: TSESTree.Node,
+  spec: TSESTree.ExportSpecifier,
+): void {
   context.report({
     node: spec,
     messageId: 'mustBeInline',
@@ -123,6 +134,15 @@ function isVarDecl(
   node: TSESTree.Statement,
 ): node is TSESTree.VariableDeclaration {
   return node.type === 'VariableDeclaration';
+}
+
+function isTypeDecl(
+  node: TSESTree.Statement,
+): node is TSESTree.TSInterfaceDeclaration | TSESTree.TSTypeAliasDeclaration {
+  return (
+    node.type === 'TSInterfaceDeclaration' ||
+    node.type === 'TSTypeAliasDeclaration'
+  );
 }
 
 function isIdent(node: TSESTree.Node): node is TSESTree.Identifier {

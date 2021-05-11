@@ -93,6 +93,26 @@ ruleTester.run('export-inline', rule, {
       ],
     },
     {
+      code: `export { A }; interface A {}`,
+      output: `export {  }; export interface A {}`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
+      code: `export { A }; type A = string;`,
+      output: `export {  }; export type A = string;`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
       code: `import { foo } from './foo'; foo(); export { };`,
       output: `import { foo } from './foo'; foo(); `,
       errors: [
