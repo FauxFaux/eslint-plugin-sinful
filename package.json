@@ -12,12 +12,13 @@
     "type": "git",
     "url": "git+https://github.com/FauxFaux/eslint-plugin-sinful.git"
   },
-  "author": "",
+  "author": "Chris West (Faux) <solo-npm@goeswhere.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/FauxFaux/eslint-plugin-sinful/issues"
   },
   "homepage": "https://github.com/FauxFaux/eslint-plugin-sinful#readme",
+  "files": ["dist/", "src/", "README.md"],
   "dependencies": {
     "@typescript-eslint/experimental-utils": "^4.19.0",
     "tslib": "^2.1.0",
