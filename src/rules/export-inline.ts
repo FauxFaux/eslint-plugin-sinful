@@ -64,6 +64,12 @@ export default util.createRule<Options, MessageIds>({
           report(context, stat, spec);
         }
 
+        for (const stat of node.body.filter(isEnumDecl)) {
+          const spec = exports[stat.id.name];
+          if (!spec) continue;
+          report(context, stat, spec);
+        }
+
         const interfaces = node.body.filter(isTypeDecl);
         for (const stat of interfaces) {
           const spec = exports[stat.id.name];
@@ -128,6 +134,12 @@ function isFuncDecl(
   node: TSESTree.Statement,
 ): node is TSESTree.FunctionDeclaration {
   return node.type === 'FunctionDeclaration';
+}
+
+function isEnumDecl(
+  node: TSESTree.Statement,
+): node is TSESTree.TSEnumDeclaration {
+  return node.type === 'TSEnumDeclaration';
 }
 
 function isVarDecl(

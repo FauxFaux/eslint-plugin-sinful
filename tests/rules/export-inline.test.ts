@@ -103,6 +103,26 @@ ruleTester.run('export-inline', rule, {
       ],
     },
     {
+      code: `export { A }; enum A { Foo, Bar };`,
+      output: `export {  }; export enum A { Foo, Bar };`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
+      code: `export { A }; const enum A { Foo, Bar };`,
+      output: `export {  }; export const enum A { Foo, Bar };`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'mustBeInline',
+        },
+      ],
+    },
+    {
       code: `export { A }; type A = string;`,
       output: `export {  }; export type A = string;`,
       errors: [
