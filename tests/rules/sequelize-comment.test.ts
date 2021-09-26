@@ -38,6 +38,25 @@ ruleTester.run('export-inline', rule, {
       ],
     },
     {
+      code: `function noon() { foo.findAll({}) }`,
+      output: `function noon() { foo.findAll({comment: 'eslint-plugin-sinful/tests/file.ts:noon', }) }`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'requiresComment',
+        },
+      ],
+    },
+    {
+      code: `function noon() { foo.findOne({ /* whatevs */}) }`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'requiresComment',
+        },
+      ],
+    },
+    {
       code: `const day = () => foo.findAll({ where: {} })`,
       output: `const day = () => foo.findAll({ comment: 'eslint-plugin-sinful/tests/file.ts:day', where: {} })`,
       errors: [

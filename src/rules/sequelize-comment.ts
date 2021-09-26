@@ -40,18 +40,27 @@ export default util.createRule<Options, MessageIds>({
         if (hasProperty(arg, 'comment')) return;
         const funcName = getFunc(node);
 
+        // can't fix "{ /* comment */ }" because dumb api
+        // { where } or { where: {} } or { where, there } all fine
+        const hasAnyProperties = 0 !== arg.properties.length;
+        // literally just {}
+        const trulyEmptyBlock = 2 === arg.range[1] - arg.range[0];
+
         let fix: ReportDescriptor<MessageIds>['fix'] = undefined;
-        if (funcName) {
+        if (funcName && (hasAnyProperties || trulyEmptyBlock)) {
           fix = (fixer) => {
             const pathEnd = context
               .getFilename()
               .split('/')
               .slice(-3)
               .join('/');
-            return fixer.insertTextBefore(
-              arg.properties[0],
-              `comment: '${pathEnd}:${funcName}', `,
-            );
+            const text = `comment: '${pathEnd}:${funcName}', `;
+
+            if (hasAnyProperties) {
+              return fixer.insertTextBefore(arg.properties[0], text);
+            } else {
+              return fixer.replaceText(arg, `{${text}}`);
+            }
           };
         }
 
