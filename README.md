@@ -62,6 +62,26 @@ try { return await fooAsync(); }
 catch (err) { /* now called */ }
 ```
 
+### sequelize-comment
+
+Feature. Adds the path/function to sequelize calls, such
+that some comment plugin could read them out and put them
+into the query.
+
+In:
+```typescript
+models.Potato.findOne({ where: { id } })
+```
+
+Out:
+```typescript
+models.Potato.findOne({
+    comment: 'lib/potato/read.ts:getById',
+    where: { id },
+})
+```
+
+
 ### unbounded-concurrency
 
 Bug finder. Discourages the use of promise machinery which will

@@ -19,8 +19,27 @@ ruleTester.run('export-inline', rule, {
   ],
   invalid: [
     {
+      code: `function night() { return foo.findAll({ where: {} }) }`,
+      output: `function night() { return foo.findAll({ comment: 'eslint-plugin-sinful/tests/file.ts:night', where: {} }) }`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'requiresComment',
+        },
+      ],
+    },
+    {
       code: `foo.findAll({ where: {} })`,
-      output: `foo.findAll({ comment: 'eslint-plugin-sinful/tests/file.ts:unknown', where: {} })`,
+      errors: [
+        {
+          line: 1,
+          messageId: 'requiresComment',
+        },
+      ],
+    },
+    {
+      code: `const day = () => foo.findAll({ where: {} })`,
+      output: `const day = () => foo.findAll({ comment: 'eslint-plugin-sinful/tests/file.ts:day', where: {} })`,
       errors: [
         {
           line: 1,
