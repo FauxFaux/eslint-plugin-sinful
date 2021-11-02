@@ -4,27 +4,36 @@ import {
   ClassProperty,
 } from '@typescript-eslint/types/dist/ast-spec';
 import * as util from '../util/from-eslint-typescript';
-import { classIsItlyEventImplementation, getItlyPropertiesDeclaration, isItlyFile, ItlyRuleMessageIds, ItlyRuleOptions } from '../util/itly';
+import {
+  classIsItlyEventImplementation,
+  getImplementedProperties,
+  getInterfaceDeclarationFromProgram,
+  getItlyPropertiesDeclaration,
+  getProgram,
+  isItlyFile,
+  ItlyRuleMessageIds,
+  ItlyRuleOptions,
+} from '../util/itly';
 
 export default util.createRule<ItlyRuleOptions, ItlyRuleMessageIds>({
-  name: 'require-itly-constant',
+  name: 'require-itly-event-source',
   meta: {
     type: 'problem',
     docs: {
-      description: 'Enforces itly constant is set in Iteratively',
+      description: 'Enforces itly eventSource is set in Iteratively',
       recommended: false,
       category: 'Best Practices',
     },
     schema: [{}],
     messages: {
       invalidFile:
-        'require-itly-constant should only be enabled for the generated Itly library',
-      missingRequiredItlyProperty: `{{ eventName }} is missing the Iteratively property group`,
+        'require-itly-event-source should only be enabled for the generated Itly library',
+      missingRequiredItlyProperty: `{{ eventName }} is missing the Event Source property group, please update the Event at data.amplitude.com/snyk`,
     },
   },
   defaultOptions: [{}],
   create: function (context) {
-    function propertiesDeclarationContainsItlyConstant(
+    function propertiesDeclarationContainsEventSourceConstant(
       propertiesDeclaration: ClassProperty,
     ) {
       if (
@@ -39,7 +48,7 @@ export default util.createRule<ItlyRuleOptions, ItlyRuleMessageIds>({
                 (member) =>
                   member.type === AST_NODE_TYPES.TSPropertySignature &&
                   member.key.type === AST_NODE_TYPES.Literal &&
-                  member.key.value === 'itly',
+                  member.key.value === 'eventSource',
               ),
           );
         return containsItlyLiteral;
@@ -52,11 +61,54 @@ export default util.createRule<ItlyRuleOptions, ItlyRuleMessageIds>({
           (property) =>
             property.type === AST_NODE_TYPES.Property &&
             property.key.type === AST_NODE_TYPES.Literal &&
-            property.key.value === 'itly',
+            property.key.value === 'eventSource',
         );
       }
 
       return false;
+    }
+
+    function getPropertiesInterfaceName(itlyPropertiesDeclaration: ClassProperty) {
+      const implementedProperties = getImplementedProperties(
+        itlyPropertiesDeclaration,
+      );
+
+      if (!implementedProperties) {
+        return;
+      }
+
+      return (
+        implementedProperties.typeName.type === AST_NODE_TYPES.Identifier ?
+        implementedProperties.typeName.name : undefined
+      );
+    }
+
+    function propertiesInterfaceContainsEventSource(itlyPropertiesDeclaration: ClassProperty) {
+      const interfaceName = getPropertiesInterfaceName(itlyPropertiesDeclaration);
+
+      if (!interfaceName) {
+        return false;
+      }
+      const program = getProgram(itlyPropertiesDeclaration);
+
+      if (!program) {
+        return false;
+      }
+      const interfaceDeclaration = getInterfaceDeclarationFromProgram(
+        program,
+        interfaceName,
+      );
+
+      if (!interfaceDeclaration) {
+        return false;
+      }
+
+      return interfaceDeclaration.body.body.some(
+        (node) =>
+          node.type === AST_NODE_TYPES.TSPropertySignature &&
+          node.key.type === AST_NODE_TYPES.Identifier &&
+          node.key.name === 'eventSource',
+      );
     }
 
     function reportMissingItlyConstant(classDeclarationNode: ClassDeclaration) {
@@ -93,12 +145,21 @@ export default util.createRule<ItlyRuleOptions, ItlyRuleMessageIds>({
           return;
         }
 
+        // eventSource may show up as a constant (like itly: true)...
         if (
-          propertiesDeclarationContainsItlyConstant(itlyPropertiesDeclaration)
+          propertiesDeclarationContainsEventSourceConstant(
+            itlyPropertiesDeclaration,
+          )
         ) {
           return;
         }
 
+        // ...or it may be contained in the Event's properties interface
+        if (propertiesInterfaceContainsEventSource(itlyPropertiesDeclaration)) {
+          return;
+        }
+
+        // eventSource was not found in any of the expected places
         reportMissingItlyConstant(classDeclarationNode);
       },
     };
