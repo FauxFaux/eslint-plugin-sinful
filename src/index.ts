@@ -4,6 +4,7 @@ import returnAwait from './rules/return-await';
 import sequelizeComment from './rules/sequelize-comment';
 import unboundedConcurrency from './rules/unbounded-concurrency';
 import requireItlyConstant from './rules/require-itly-constant';
+import requireItlyEventSource from './rules/require-itly-event-source';
 
 export const rules = {
   'export-inline': exportInline,
@@ -12,6 +13,7 @@ export const rules = {
   'sequelize-comment': sequelizeComment,
   'unbounded-concurrency': unboundedConcurrency,
   'require-itly-constant': requireItlyConstant,
+  'require-itly-event-source': requireItlyEventSource,
 };
 
 export * as util from './util';
